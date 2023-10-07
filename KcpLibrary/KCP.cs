@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-//using System.Threading.Tasks;
-//https://github.com/a11s/kcp_warpper
-namespace kcpwarpper
+﻿using System.Runtime.InteropServices;
+
+namespace KcpLibrary
 {
     public unsafe class KCP
     {
@@ -57,7 +52,7 @@ namespace kcpwarpper
         /// <param name="buffer"></param>
         /// <param name="len"></param>
         /// <returns></returns>
-        [DllImport(LIBNAME)]        
+        [DllImport(LIBNAME)]
         public static extern int ikcp_send(IKCPCB* kcp, byte* buffer, int len);
         /// <summary>
         /// update state (call it repeatedly, every 10ms-100ms), or you can ask 
@@ -66,7 +61,7 @@ namespace kcpwarpper
         /// </summary>
         /// <param name="kcp"></param>
         /// <param name="current"></param>
-        [DllImport(LIBNAME)]        
+        [DllImport(LIBNAME)]
         public static extern void ikcp_update(IKCPCB* kcp, uint current);
         /// <summary>
         /// Determine when should you invoke ikcp_update:
@@ -89,19 +84,19 @@ namespace kcpwarpper
         /// <param name="data"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        [DllImport(LIBNAME)]        
+        [DllImport(LIBNAME)]
         public static extern int ikcp_input(IKCPCB* kcp, byte* data, long size);
         /// <summary>
         /// flush pending data
         /// </summary>
         /// <param name="kcp"></param>
-        [DllImport(LIBNAME)]        
+        [DllImport(LIBNAME)]
         public static extern void ikcp_flush(IKCPCB* kcp);
         /// <summary>
         /// check the size of next message in the recv queue
         /// </summary> 
-        [DllImport(LIBNAME)]        
-        public static extern int ikcp_peeksize( IKCPCB* kcp);
+        [DllImport(LIBNAME)]
+        public static extern int ikcp_peeksize(IKCPCB* kcp);
         /// <summary>
         /// change MTU size, default is 1400
         /// </summary>
@@ -145,7 +140,7 @@ namespace kcpwarpper
         public static extern int ikcp_nodelay(IKCPCB* kcp, int nodelay, int interval, int resend, int nc);
 
         [DllImport(LIBNAME)]
-        public static extern void ikcp_log(IKCPCB* kcp, int mask,  byte* fmt, params object[] p);
+        public static extern void ikcp_log(IKCPCB* kcp, int mask, byte* fmt, params object[] p);
         /// <summary>
         ///setup allocator
         ///public static extern void ikcp_allocator(void* (* new_malloc)(size_t), void (* new_free)(void*)); //give up 
@@ -153,7 +148,7 @@ namespace kcpwarpper
         /// </summary>
         /// <param name="ptr"></param>
         /// <returns></returns>
-        [DllImport(LIBNAME)]        
+        [DllImport(LIBNAME)]
         public static extern uint ikcp_getconv(void* ptr);
     }
 }

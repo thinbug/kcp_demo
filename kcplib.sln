@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.8
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kcplib", "kcplib\kcplib.vcxproj", "{308D3C4E-29F1-4981-A043-6C9245995836}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kcplib_linux", "kcplib_linux\kcplib_linux.vcxproj", "{4871783C-9A46-494E-8958-953E77B1B33A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kcpwarpper.net35", "kcpwarpper.net35\kcpwarpper.net35.csproj", "{89377BAF-ED8A-4E71-B2D3-CF7036226F7E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KcpLibrary", "KcpLibrary\KcpLibrary.csproj", "{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -135,6 +137,22 @@ Global
 		{89377BAF-ED8A-4E71-B2D3-CF7036226F7E}.Release|x64.Build.0 = Release|Any CPU
 		{89377BAF-ED8A-4E71-B2D3-CF7036226F7E}.Release|x86.ActiveCfg = Release|Any CPU
 		{89377BAF-ED8A-4E71-B2D3-CF7036226F7E}.Release|x86.Build.0 = Release|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Debug|ARM.Build.0 = Debug|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Debug|x64.Build.0 = Debug|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Debug|x86.Build.0 = Debug|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Release|ARM.ActiveCfg = Release|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Release|ARM.Build.0 = Release|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Release|x64.ActiveCfg = Release|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Release|x64.Build.0 = Release|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Release|x86.ActiveCfg = Release|Any CPU
+		{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
