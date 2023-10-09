@@ -10,8 +10,21 @@ namespace kcp_server
 {
     internal class KcpSocketServer
     {
+        public class KcpClientInfo
+        {
+            //此类是连接的客户端的数据。
+            public uint conv;   //玩家的conv
+            public string ip;   //ip
+            public int port;    //端口
+            public int lastHeart;   //上次心跳时间戳
+
+            public KcpServer kcp;   //对应的客户端kcp
+        }
+
+        public static string ConnetKey = "ABCDEF0123456789";
+
         Socket udpsocket;
-        Dictionary<string, KcpServer> kcpClientDict;
+        Dictionary<uint, KcpClientInfo> kcpClientDict;
 
         string localIp = "127.0.0.1";
 
@@ -20,14 +33,11 @@ namespace kcp_server
         byte[] kb = new byte[1400];
         public void Create()
         {
-            kcpClientDict = new Dictionary<string, KcpServer> ();
+            kcpClientDict = new Dictionary<uint, KcpClientInfo>();
             var localipep = new IPEndPoint(IPAddress.Parse(localIp), 0);
             udpsocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             udpsocket.Blocking = false;
             udpsocket.Bind(localipep);
-
-            //kcp = new KcpServer();
-            //kcp.Create(udpsocket);
 
             BeginUpdate();
         }
@@ -43,7 +53,7 @@ namespace kcp_server
                     while (list.MoveNext())
                     {
                         var item = list.Current;
-                        item.Value.Update();
+                        item.Value.kcp.Update();
                     }
                     list.Dispose();
 
@@ -56,7 +66,7 @@ namespace kcp_server
                     int cnt = udpsocket.ReceiveFrom(b, ref ipep);
                     if (cnt > 0)
                     {
-                        string k = ipep.ToString();
+                        uint convClient = BitConverter.ToUInt32(b, 0);
                         bool getone = kcpClientDict.TryGetValue(k, out var kcp);
                         if (!getone)
                         {
