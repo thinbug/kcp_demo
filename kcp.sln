@@ -17,11 +17,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kcplib_linux", "kcplib_linu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kcpwarpper.net35", "kcpwarpper.net35\kcpwarpper.net35.csproj", "{89377BAF-ED8A-4E71-B2D3-CF7036226F7E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KcpLibrary", "KcpLibrary\KcpLibrary.csproj", "{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KcpLibrary", "KcpLibrary\KcpLibrary.csproj", "{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kcp_server", "kcp_server\kcp_server.csproj", "{7C1E7F6C-4A48-4621-919A-86E10C60B33E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KcpServer", "kcp_server\KcpServer.csproj", "{7C1E7F6C-4A48-4621-919A-86E10C60B33E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KcpClient", "KcpClient\KcpClient.csproj", "{8843220F-3439-406D-8635-94353416E3A7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KcpClient", "KcpClient\KcpClient.csproj", "{8843220F-3439-406D-8635-94353416E3A7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
