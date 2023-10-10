@@ -8,27 +8,29 @@ using System.Text;
 using System.Threading.Tasks;
 using static KcpLibrary.KCP;
 
-namespace kcp_server
+namespace kcp
 {
     unsafe internal class KcpServer
     {
 
-        EndPoint ipep = new IPEndPoint(0, 0);
-        byte[] b = new byte[1400];
-        byte[] kb = new byte[1400];
         public KcpLibrary.IKCPCB* kcp;
         uint userid = 0;
-        
-        EndPoint remoteipep = new IPEndPoint(IPAddress.Any, 0);
+        //byte[] b = new byte[1400];
+        byte[] kb = new byte[1400];
+
+
+
+        //EndPoint ipep = new IPEndPoint(0, 0);
+        //EndPoint remoteipep = new IPEndPoint(IPAddress.Any, 0);
 
         //Socket udpsocket;
-        KcpSocketServer socketServer;
+        private KcpSocketServer socketServer;
 
 
-        public void Create(KcpSocketServer socketServer,uint _conv)
+        public void Create(KcpSocketServer _socketServer,uint _conv)
         {
-            socketServer = socketServer;
-            Console.WriteLine("Hello, World!");
+            socketServer = _socketServer;
+            //Console.WriteLine("Hello, World!");
             //udpsocket = _udpsocket;
 
 
@@ -90,7 +92,7 @@ namespace kcp_server
 
         public void kcp_input(byte[] data, long size)
         {
-            fixed (byte* p = &b[0])
+            fixed (byte* p = &data[0])
             {
                 ikcp_input(kcp, p, size);
             }
@@ -104,7 +106,7 @@ namespace kcp_server
                 var kcnt = ikcp_recv(kcp, p, kb.Length);
                 if (kcnt > 0)
                 {
-                    Console.WriteLine("rec:" + Encoding.UTF8.GetString(kb, 0, kcnt));
+                    socketServer.SocketRecvData(userid, kb, kcnt);
                 }
             }
         }
@@ -113,7 +115,8 @@ namespace kcp_server
         {
             byte[] buff = new byte[len];
             Marshal.Copy(new IntPtr(buf), buff, 0, len);
-            socketServer.SocketSendByte((int)user,buff, len);
+            socketServer.SocketSendByte(userid, buff, len);
+            //socketServer.SocketSendByte((int)user, buff, len);
             //udpsocket.SendTo(buff, 0, len, SocketFlags.None, remoteipep);
             Console.WriteLine("udp_output:" + (int)user);
             return 0;
@@ -124,19 +127,19 @@ namespace kcp_server
             fixed (byte* p = &buff[0])
             {
                 var ret = ikcp_send(kcp, p, len);
-                Console.WriteLine("server SendByte:" + ret);
+                Console.WriteLine("Kcp SendByte:" + ret);
             }
         }
 
-        public void Send(string txt)
-        {
-            var buff = Encoding.UTF8.GetBytes(txt);
-            fixed (byte* p = &buff[0])
-            {
-                var ret = ikcp_send(kcp, p, buff.Length);
-                Console.WriteLine("server send:" + ret);
-            }
-        }
+        //public void Send(string txt)
+        //{
+        //    var buff = Encoding.UTF8.GetBytes(txt);
+        //    fixed (byte* p = &buff[0])
+        //    {
+        //        var ret = ikcp_send(kcp, p, buff.Length);
+        //        Console.WriteLine("server send:" + ret);
+        //    }
+        //}
 
     }
 }
