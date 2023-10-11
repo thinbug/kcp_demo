@@ -30,10 +30,6 @@ namespace kcp
         public void Create(KcpSocketClient _socketClient, uint _conv)
         {
             socketClient = _socketClient;
-            //Console.WriteLine("Hello, World!");
-            //udpsocket = _udpsocket;
-
-
             userid = _conv;
 
             kcp = ikcp_create(userid, (void*)userid);
@@ -48,7 +44,7 @@ namespace kcp
             //udpsocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             //udpsocket.Blocking = false;
             //udpsocket.Bind(localipep);
-            Console.WriteLine("Bind server");
+            Console.WriteLine("client linked .");
 
         }
 
@@ -106,7 +102,7 @@ namespace kcp
                 var kcnt = ikcp_recv(kcp, p, kb.Length);
                 if (kcnt > 0)
                 {
-                    socketServer.SocketRecvData(userid, kb, kcnt);
+                    socketClient.SocketRecvData(userid, kb, kcnt);
                 }
             }
         }
@@ -115,7 +111,7 @@ namespace kcp
         {
             byte[] buff = new byte[len];
             Marshal.Copy(new IntPtr(buf), buff, 0, len);
-            socketServer.SocketSendByte(userid, buff, len);
+            socketClient.SocketSendByte(userid, buff, len);
             //socketServer.SocketSendByte((int)user, buff, len);
             //udpsocket.SendTo(buff, 0, len, SocketFlags.None, remoteipep);
             Console.WriteLine("udp_output:" + (int)user);

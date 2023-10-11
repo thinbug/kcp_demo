@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KcpLibrary;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -140,7 +141,7 @@ namespace kcp
                         offset += 4;
                         if (convClient == 0)
                         {
-                            ProcessUdp(ip, port, buff);
+                            ProcessUdp(ip, port, buff, cnt);
                             //所有的非kcp数据接收后都不用继续走了
                             continue;
                         }
@@ -185,7 +186,7 @@ namespace kcp
             });
         }
 
-        void ProcessUdp(string _ip,int _port, byte[] _buff)
+        void ProcessUdp(string _ip,int _port, byte[] _buff,int size)
         {
             int offset = 4; //udp数据第一位需要。
             //客户端连接，需要发送，{ 0(空数据),KcpFlag.Connect(连接类型),ConnectKey(连接密钥)}
@@ -197,7 +198,7 @@ namespace kcp
                 case KcpFlag.ConnectRequest:
                     //如果是连接，需要验证连接密匙
                     //{0(空数据),KcpFlag.ConnectRequest(连接类型),ConnectKey(连接密钥)}
-                    string ckey = System.Text.ASCIIEncoding.UTF8.GetString(_buff, 8, _buff.Length - offset);
+                    string ckey = Encoding.UTF8.GetString(_buff, 8, size - offset);
                     if (ckey.Equals(ConnectKey))
                     {
                         //如果是合法的，那么需要生成一个conv。
@@ -214,14 +215,20 @@ namespace kcp
                         //然后通知客户端conv编号再次链接
                         //SocketFlagSend(KcpFlag.AllowConnectConv, ipep);
                         //{ 0(空),KcpFlag.AllowConnectConv(连接类型),一个随机数}
-                        byte[] zeroUnit = BitConverter.GetBytes((int)0);
-                        linkbuff.CopyTo(zeroUnit, 0);
-                        byte[] convUnit = BitConverter.GetBytes((int)KcpFlag.AllowConnectConv);
-                        linkbuff.CopyTo(convUnit, 4);
-                        byte[] convCode = BitConverter.GetBytes(kinfo.linkrandomcode);
-                        linkbuff.CopyTo(convCode, 8);
-                        udpsocket.SendTo(linkbuff, 0, 12, SocketFlags.None, ipep);
+                        //byte[] zeroUnit = BitConverter.GetBytes((int)0);
+                        //zeroUnit.CopyTo(linkbuff, 0);
+                        //byte[] convUnit = BitConverter.GetBytes((int)KcpFlag.AllowConnectConv);
+                        //convUnit.CopyTo(linkbuff, 4);
+                        //byte[] convCode = BitConverter.GetBytes(kinfo.linkrandomcode);
+                        //convCode.CopyTo(linkbuff, 8);
 
+                        byte[] buff0 = StructConverter.Pack(new object[] { (int)0, (int)KcpFlag.AllowConnectConv, kinfo.linkrandomcode });
+                        //udpsocket.Send(buff0, 0, buff0.Length, SocketFlags.None, ipep);
+
+
+                        udpsocket.SendTo(buff0, 0, buff0.Length, SocketFlags.None, ipep);
+
+                        Console.WriteLine("接收到客户端第一次请求连接:" + ipep.ToString());
                         //客户端直接可以使用kcp来链接了，第一个编号必须还是0
                     }
                     break;
@@ -250,7 +257,7 @@ namespace kcp
 
                             //通知客户端成功,通过kcp发送
                             byte[] convUnit = BitConverter.GetBytes((int)KcpFlag.AllowConnectOK);
-                            linkbuff.CopyTo(convUnit, 4);
+                            convUnit.CopyTo(linkbuff, 4);
                             linkinfo.kcp.SendByte(linkbuff, 4);
                         }
                     }
@@ -264,9 +271,9 @@ namespace kcp
         {
             //然后通知客户端conv编号再次链接
             byte[] zeroUnit = BitConverter.GetBytes((int)0);
-            linkbuff.CopyTo(zeroUnit, 0);
+            zeroUnit.CopyTo(linkbuff, 0);
             byte[] convUnit = BitConverter.GetBytes((int)kcpflag);
-            linkbuff.CopyTo(convUnit, 4);
+            convUnit.CopyTo(linkbuff, 4);
             udpsocket.SendTo(linkbuff, 0, 8, SocketFlags.None, ep);
         }
     }

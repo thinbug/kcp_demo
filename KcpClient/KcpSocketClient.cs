@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KcpLibrary;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -62,6 +63,10 @@ namespace kcp
             var remote = new IPEndPoint(IPAddress.Parse(remoteIp), remotePort);
             udpsocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             udpsocket.Blocking = false;
+            uint IOC_IN = 0x80000000;
+            uint IOC_VENDOR = 0x18000000;
+            uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
+            udpsocket.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
             udpsocket.Connect(remote);
 
             BeginUpdate();
@@ -71,14 +76,7 @@ namespace kcp
 
         public void SocketSendByte(uint _convId, byte[] _buff, int len)
         {
-            bool getone = kcpClientDict.TryGetValue(_convId, out var kcpinfo);
-            if (!getone)
-            {
-                Console.WriteLine("找不到发送对象:" + _convId);
-                return;
-            }
-            udpsocket.SendTo(_buff, 0, len, SocketFlags.None, kcpinfo.ep);
-
+            udpsocket.Send(_buff, 0, len, SocketFlags.None);
             Console.WriteLine("socket发送:" + _convId);
         }
 
@@ -95,6 +93,8 @@ namespace kcp
                 {
                     await Task.Delay(10);
 
+                    ProcessLinkServer();
+
                     if (kcpClient != null)
                     {
                         kcpClient.Update();
@@ -106,7 +106,6 @@ namespace kcp
                         continue;
                     }
 
-                    ProcessLinkServer();
 
 
                     int cnt = udpsocket.Receive(buff);
@@ -125,24 +124,8 @@ namespace kcp
                         }
 
                         //走到这里的都是有conv的数据
-                        Console.WriteLine("ReceiveFrom:" + ipep.ToString());
-                        bool getkcp = kcpClientDict.TryGetValue(convClient, out var info);
-                        if (getkcp)
-                        {
-                            //验证IP和端口
-                            if (info.port == port && ip.Equals(info.ip))
-                            {
-                                info.kcp.kcp_input(buff, cnt);
-                            }
-                            else
-                            {
-                                SocketFlagSend(KcpFlag.ErrorIPPortWrong, ipep);
-                            }
-                        }
-                        else
-                        {
-                            SocketFlagSend(KcpFlag.ErrorConv, ipep);
-                        }
+                        kcpClient.kcp_input(buff, cnt);
+                        
                     }
                     else
                     {
@@ -151,15 +134,8 @@ namespace kcp
                     }
 
                     //接收数据
-                    list = kcpClientDict.GetEnumerator();
-                    while (list.MoveNext())
-                    {
-                        var item = list.Current;
-                        item.Value.kcp.kcp_recv();
-                    }
-                    list.Dispose();
-                    
-                    
+                    kcpClient.kcp_recv();
+
                 }
             });
         }
@@ -175,17 +151,10 @@ namespace kcp
                 case 0://发送第一次握手数据
                     //然后通知客户端conv编号再次链接
                     stat = -1;
-                    int offset = 0;
-                    byte[] zeroUnit = BitConverter.GetBytes((int)0);
-                    linkbuff.CopyTo(zeroUnit, 0);
-                    offset += 4;
-                    byte[] convUnit = BitConverter.GetBytes((int)KcpFlag.ConnectRequest);
-                    linkbuff.CopyTo(convUnit, 4);
-                    offset += 4;
-                    byte[] key = System.Text.ASCIIEncoding.UTF8.GetBytes(ConnectKey);
-                    linkbuff.CopyTo(key, key.Length);
-                    offset += key.Length;
-                    udpsocket.Send(linkbuff, 0, offset, SocketFlags.None);
+                    byte[] buff0 = StructConverter.Pack(new object[] { (int)0, (int)KcpFlag.ConnectRequest, ConnectKey });
+                    udpsocket.Send(buff0, 0, buff0.Length, SocketFlags.None);
+                    Console.WriteLine("发送第一次握手数据:" + Encoding.UTF8.GetString(buff0) + ",len:" + buff0.Length);
+
                     break;
             }
         }
@@ -213,15 +182,19 @@ namespace kcp
 
 
                     //{0,KcpFlag.ConnectKcpRequest,自己的conv编号，服务端的随机数}
-                    byte[] zeroUnit = BitConverter.GetBytes((int)0);
-                    linkbuff.CopyTo(zeroUnit, 0);
-                    byte[] flagUnit = BitConverter.GetBytes((int)KcpFlag.ConnectKcpRequest);
-                    linkbuff.CopyTo(flagUnit, 4);
-                    byte[] convUnit = BitConverter.GetBytes((uint)get_conv);
-                    linkbuff.CopyTo(convUnit, 8);
-                    byte[] codeUnit = BitConverter.GetBytes((int)linkcode);
-                    linkbuff.CopyTo(codeUnit, 12);
-                    udpsocket.Send(linkbuff, 0, 16, SocketFlags.None);
+                    //byte[] zeroUnit = BitConverter.GetBytes((int)0);
+                    //zeroUnit.CopyTo(linkbuff, 0);
+                    //byte[] flagUnit = BitConverter.GetBytes((int)KcpFlag.ConnectKcpRequest);
+                    //flagUnit.CopyTo(linkbuff, 4);
+                    //byte[] convUnit = BitConverter.GetBytes((uint)get_conv);
+                    //convUnit.CopyTo(linkbuff, 8);
+                    //byte[] codeUnit = BitConverter.GetBytes((int)linkcode);
+                    //codeUnit.CopyTo(linkbuff, 12);
+                    //udpsocket.Send(linkbuff, 0, 16, SocketFlags.None);
+
+                    byte[] buff0 = StructConverter.Pack(new object[] { (int)0, (int)KcpFlag.ConnectKcpRequest, get_conv, linkcode });
+                    udpsocket.Send(buff0, 0, buff0.Length, SocketFlags.None);
+                    Console.WriteLine("发送第2次握手数据:" + Encoding.UTF8.GetString(buff0) + ",len:" + buff0.Length);
 
                     //开始创建自己的kcp，开始接收数据
                     kcpClient = new KcpClient();
@@ -237,9 +210,9 @@ namespace kcp
         {
             //然后通知客户端conv编号再次链接
             byte[] zeroUnit = BitConverter.GetBytes((int)0);
-            linkbuff.CopyTo(zeroUnit, 0);
+            zeroUnit.CopyTo(linkbuff, 0);
             byte[] convUnit = BitConverter.GetBytes((int)kcpflag);
-            linkbuff.CopyTo(convUnit, 4);
+            convUnit.CopyTo(linkbuff, 4);
             udpsocket.SendTo(linkbuff, 0, 8, SocketFlags.None, ep);
         }
     }
