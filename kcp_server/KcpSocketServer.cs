@@ -1,6 +1,7 @@
 ﻿using KcpLibrary;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -69,6 +70,7 @@ namespace kcp
 
         public void Create()
         {
+            Console.WriteLine("IsLittleEndian:" + BitConverter.IsLittleEndian);
             kcpClientDict = new Dictionary<uint, KcpClientInfo>();
             kcpClientLinking = new Dictionary<uint, KcpClientInfo>();
             var localipep = new IPEndPoint(IPAddress.Parse(localIp), localPort);
@@ -189,8 +191,8 @@ namespace kcp
         void ProcessUdp(string _ip,int _port, byte[] _buff,int size)
         {
             int offset = 4; //udp数据第一位需要。
-            //客户端连接，需要发送，{ 0(空数据),KcpFlag.Connect(连接类型),ConnectKey(连接密钥)}
-            KcpFlag flagtype = (KcpFlag)BitConverter.ToInt32(_buff, 4);
+            //客户端连接，需要发送，{ 0(空数据),KcpFlag.Connect(连接类型),。。。。。}
+            KcpFlag flagtype = (KcpFlag)BitConverter.ToInt32(_buff, offset);
             offset += 4;
             //为0，表示是非KCP数据,然后获取第二位，看想做什么
             switch (flagtype)
@@ -259,6 +261,8 @@ namespace kcp
                             byte[] convUnit = BitConverter.GetBytes((int)KcpFlag.AllowConnectOK);
                             convUnit.CopyTo(linkbuff, 4);
                             linkinfo.kcp.SendByte(linkbuff, 4);
+
+                            Console.WriteLine("同意客户端请求连接:" + ipep.ToString());
                         }
                     }
 

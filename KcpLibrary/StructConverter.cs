@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Collections;
 
 // This is a crude implementation of a format string based struct converter for C#.
 // This is probably not the best implementation, the fastest implementation, the most bug-proof implementation, or even the most functional implementation.
@@ -250,9 +251,13 @@ namespace KcpLibrary
             // convert each item in the objects to the representative bytes
             foreach (object o in items)
             {
+                //var ao = 65534;
+                //byte[] theseBytestt = BitConverter.GetBytes(ao);
+                //Array.Reverse(theseBytestt);
+
                 byte[] theseBytes = TypeAgnosticGetBytes(o);
 
-                if (endianFlip == true) theseBytes = (byte[])theseBytes.Reverse();
+                if (endianFlip == true) Array.Reverse(theseBytes);
                 outString += GetFormatSpecifierFor(o, theseBytes.Length);
                 outputBytes.AddRange(theseBytes);
             }
@@ -266,7 +271,7 @@ namespace KcpLibrary
         public static byte[] Pack(object[] items)
         {
             string dummy = "";
-            return Pack(items, true, out dummy);
+            return Pack(items, false, out dummy);
         }
     }
 }

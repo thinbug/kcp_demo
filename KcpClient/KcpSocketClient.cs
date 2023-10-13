@@ -69,6 +69,9 @@ namespace kcp
             udpsocket.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
             udpsocket.Connect(remote);
 
+            kcpClient = new KcpClient();
+            kcpClient.Create(this, 1);
+
             BeginUpdate();
         }
 
@@ -151,9 +154,9 @@ namespace kcp
                 case 0://发送第一次握手数据
                     //然后通知客户端conv编号再次链接
                     stat = -1;
-                    byte[] buff0 = StructConverter.Pack(new object[] { (int)0, (int)KcpFlag.ConnectRequest, ConnectKey });
+                    byte[] buff0 = StructConverter.Pack(new object[] { (int)0, (int)KcpFlag.ConnectRequest, ConnectKey },false,out string head);
                     udpsocket.Send(buff0, 0, buff0.Length, SocketFlags.None);
-                    Console.WriteLine("发送第一次握手数据:" + Encoding.UTF8.GetString(buff0) + ",len:" + buff0.Length);
+                    Console.WriteLine("发送第一次握手数据:" + Encoding.UTF8.GetString(buff0) + ",len:" + buff0.Length+","+ head);
 
                     break;
             }
@@ -192,9 +195,9 @@ namespace kcp
                     //codeUnit.CopyTo(linkbuff, 12);
                     //udpsocket.Send(linkbuff, 0, 16, SocketFlags.None);
 
-                    byte[] buff0 = StructConverter.Pack(new object[] { (int)0, (int)KcpFlag.ConnectKcpRequest, get_conv, linkcode });
+                    byte[] buff0 = StructConverter.Pack(new object[] { (int)0, (int)KcpFlag.ConnectKcpRequest, get_conv, linkcode },false,out string head);
                     udpsocket.Send(buff0, 0, buff0.Length, SocketFlags.None);
-                    Console.WriteLine("发送第2次握手数据:" + Encoding.UTF8.GetString(buff0) + ",len:" + buff0.Length);
+                    Console.WriteLine("发送第2次握手数据:" + Encoding.UTF8.GetString(buff0) + ",len:" + buff0.Length+","+ head);
 
                     //开始创建自己的kcp，开始接收数据
                     kcpClient = new KcpClient();
