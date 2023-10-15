@@ -273,5 +273,25 @@ namespace KcpLibrary
             string dummy = "";
             return Pack(items, false, out dummy);
         }
+
+        public static byte[] ByteOutBigEndian(byte[] data)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(data);
+                return data;
+            } 
+            return data ;
+        }
+
+        public static int ToInt32BigEndian(byte[] data,int offset)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(data,offset, 4);
+                return BitConverter.ToInt32(data, offset + 4 );
+            }
+            return BitConverter.ToInt32(data, offset + 4 );
+        }
     }
 }

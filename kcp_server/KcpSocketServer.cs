@@ -192,7 +192,8 @@ namespace kcp
         {
             int offset = 4; //udp数据第一位需要。
             //客户端连接，需要发送，{ 0(空数据),KcpFlag.Connect(连接类型),。。。。。}
-            KcpFlag flagtype = (KcpFlag)BitConverter.ToInt32(_buff, offset);
+           
+            KcpFlag flagtype = (KcpFlag)StructConverter.ToInt32BigEndian(_buff,offset);
             offset += 4;
             //为0，表示是非KCP数据,然后获取第二位，看想做什么
             switch (flagtype)
