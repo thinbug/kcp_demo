@@ -113,12 +113,13 @@ namespace kcp
 
         int udp_output(byte* buf, int len, KcpLibrary.IKCPCB* kcp, void* user)
         {
+            //Console.WriteLine("udp_output:" + (int)user);
             byte[] buff = new byte[len];
             Marshal.Copy(new IntPtr(buf), buff, 0, len);
             socketServer.SocketSendByte(userid, buff, len);
             //socketServer.SocketSendByte((int)user, buff, len);
             //udpsocket.SendTo(buff, 0, len, SocketFlags.None, remoteipep);
-            Console.WriteLine("udp_output:" + (int)user);
+            
             return 0;
         }
 

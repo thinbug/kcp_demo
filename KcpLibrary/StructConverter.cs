@@ -49,15 +49,17 @@ namespace KcpLibrary
             throw new ArgumentException("Unsupported object type found");
         }
 
-
+        
         /// <summary>
-        /// Convert a byte array into an array of objects based on Python's "struct.unpack" protocol.
+        /// 把byte数组类型转换成正确的数据类型
         /// </summary>
-        /// <param name="fmt">A "struct.pack"-compatible format string</param>
-        /// <param name="bytes">An array of bytes to convert to objects</param>
-        /// <returns>Array of objects.</returns>
-        /// <remarks>You are responsible for casting the objects in the array back to their proper types.</remarks>
-        public static object[] Unpack(string fmt, byte[] bytes)
+        /// <param name="fmt">大小端数据类型格式，如>ii6s</param>
+        /// <param name="bytes">数据</param>
+        /// <param name="index">开始位置</param>
+        /// <param name="length">数据长度</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public static object[] Unpack(string fmt, byte[] bytes, int index ,int length )
         {
             Debug.WriteLine("Format string is length {0}, {1} bytes provided.", fmt.Length, bytes.Length);
 
@@ -101,36 +103,48 @@ namespace KcpLibrary
             int stringNo = 0;
 
             char[] cs = newFmt.ToCharArray();
-            foreach (char c in cs)
+            int[] lens = new int[cs.Length];
+            int i = 0;
+            int cssize = cs.Length;
+            for (i = 0; i < cssize; i++)//foreach (char c in cs)
             {
+                var c = cs[i];
                 switch (c)
                 {
                     case 'l':
                         totalByteLength += 1;
+                        lens[i] = 1; 
                         break;
                     case 'q':
                     case 'Q':
                         totalByteLength += 8;
+                        lens[i] = 8; 
                         break;
                     case 'i':
                     case 'I':
                         totalByteLength += 4;
+                        lens[i] = 4;
                         break;
                     case 'h':
                     case 'H':
                         totalByteLength += 2;
+                        lens[i] = 2;
                         break;
                     case 'b':
                     case 'B':
                     case 'x':
                         totalByteLength += 1;
+                        lens[i] = 1; 
                         break;
                     case 's':
-                        totalByteLength += int.Parse(mc[stringNo].ToString());
+                        int lenstr = int.Parse(mc[stringNo].ToString());
+                        totalByteLength += lenstr;
                         stringNo++;
+                        lens[i] = lenstr; 
                         break;
                     case 'f':
                         totalByteLength += 4;
+                        lens[i] = 4; 
                         break;
                     default:
                         throw new ArgumentException("Invalid character found in format string : " + c);
@@ -144,17 +158,20 @@ namespace KcpLibrary
             // Test the byte array length to see if it contains as many bytes as is needed for the string.
             //这有一个问题,如果打包了s字符串,可能出现不足4的字符串,如果后面又i型数值,那么他会补充4的倍数,导致这里长度不一样,
             //建议你直接把字符串放在末尾
-            if (bytes.Length != totalByteLength) throw new ArgumentException("The number of bytes provided does not match the total length of the format string.head.Length:" + bytes.Length + " - totalByteLength:" + totalByteLength + " , fmt : " + fmt);
+            if (length != totalByteLength) throw new ArgumentException("The number of bytes provided does not match the total length of the format string.head.Length:" + bytes.Length + " - totalByteLength:" + totalByteLength + " , fmt : " + fmt);
 
 
             // Ok, we can go ahead and start parsing bytes!
-            int byteArrayPosition = 0;
+            int byteArrayPosition = index;
             List<object> outputList = new List<object>();
             byte[] buf;
             stringNo = 0;
             Debug.WriteLine("Processing byte array...");
-            foreach (char c in cs)
+            
+            for (i = 0; i < cssize; i++)//foreach (char c in cs)
             {
+                var c = cs[i];
+                if (endianFlip == true) Array.Reverse(bytes, byteArrayPosition, lens[i]);
                 switch (c)
                 {
                     case 'l':
@@ -284,14 +301,25 @@ namespace KcpLibrary
             return data ;
         }
 
+        //转成大端
         public static int ToInt32BigEndian(byte[] data,int offset)
         {
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(data,offset, 4);
-                return BitConverter.ToInt32(data, offset + 4 );
+                return BitConverter.ToInt32(data, offset);
             }
-            return BitConverter.ToInt32(data, offset + 4 );
+            return BitConverter.ToInt32(data, offset);
+        }
+        //大端转成本机可用
+        public static int ToInt32Big2LocalEndian(byte[] bigEndiaData, int offset)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(bigEndiaData, offset, 4);
+                return BitConverter.ToInt32(bigEndiaData, offset);
+            }
+            return BitConverter.ToInt32(bigEndiaData, offset);
         }
     }
 }

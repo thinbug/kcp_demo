@@ -1,9 +1,11 @@
 ﻿using KcpLibrary;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -36,7 +38,7 @@ namespace kcp
         }
         
 
-        public static string ConnectKey = "ABCDEF0123456789";
+        public static string ConnectKey = "ABCDEFG0123456789";
         
         uint _conv = 0;
         string remoteIp = "127.0.0.1";
@@ -86,7 +88,11 @@ namespace kcp
         public void SocketRecvData(uint _convId, byte[] _buff, int len)
         {
             Console.WriteLine(_convId + "-rec:" + Encoding.UTF8.GetString(_buff, 0, len));
+            object[] parms = StructConverter.Unpack(">Ii", _buff, 8, 8);
+            KcpFlag flagtype = (KcpFlag)StructConverter.ToInt32Big2LocalEndian(_buff, index);
+            switch
         }
+
 
         async void BeginUpdate()
         {
@@ -121,7 +127,7 @@ namespace kcp
                         offset += 4;
                         if (convClient == 0)
                         {
-                            ProcessUdp(buff);
+                            ProcessUdp(buff, cnt);
                             //所有的非kcp数据接收后都不用继续走了
                             continue;
                         }
@@ -162,11 +168,12 @@ namespace kcp
             }
         }
 
-        void ProcessUdp(byte[] _buff)
+        void ProcessUdp(byte[] _buff,int buffsize)
         {
-            int offset = 4; //udp数据第一位需要。
-            KcpFlag flagtype = (KcpFlag)BitConverter.ToInt32(_buff, offset);
-            offset += 4;
+            int index = 4; //udp数据第一位需要。
+            //KcpFlag flagtype = (KcpFlag)BitConverter.ToInt32(_buff, offset);
+            KcpFlag flagtype = (KcpFlag)StructConverter.ToInt32Big2LocalEndian(_buff, index);
+            index += 4;
             //为0，表示是非KCP数据,然后获取第二位，看想做什么
             switch (flagtype)
             {
@@ -176,9 +183,10 @@ namespace kcp
                         break;
                     //接收到服务端发来的编号。
                     //{ 0(空),KcpFlag.AllowConnectConv(连接类型),一个随机数}
-                    uint get_conv = BitConverter.ToUInt32(_buff, offset);
-                    offset += 4;
-                    linkcode = BitConverter.ToInt32(_buff, offset);
+                    object[] parms = StructConverter.Unpack(">Ii", _buff, index, buffsize - index);
+                    uint get_conv = (uint)parms[0];
+                    //index += 4;
+                    linkcode = (int)parms[1];
                     //offset += 4;
 
                     //再次给服务端发送，需要服务端验证自己。

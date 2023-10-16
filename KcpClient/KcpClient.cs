@@ -114,7 +114,7 @@ namespace kcp
             socketClient.SocketSendByte(userid, buff, len);
             //socketServer.SocketSendByte((int)user, buff, len);
             //udpsocket.SendTo(buff, 0, len, SocketFlags.None, remoteipep);
-            Console.WriteLine("udp_output:" + (int)user);
+            //Console.WriteLine("udp_output:" + (int)user);
             return 0;
         }
 

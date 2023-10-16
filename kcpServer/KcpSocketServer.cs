@@ -49,7 +49,7 @@ namespace kcp
             public EndPoint ep;   //客户端的ep
         }
 
-        public static string ConnectKey = "ABCDEF0123456789";
+        public static string ConnectKey = "ABCDEFG0123456789";
         public uint convNext
         {
             get { _conv++;return _conv; }
@@ -106,7 +106,7 @@ namespace kcp
 
         public void SocketRecvData(uint _convId, byte[] _buff, int len)
         {
-            Console.WriteLine(_convId + "-rec:" + Encoding.UTF8.GetString(_buff, 0, len));
+            Console.WriteLine(_convId + "-server rec:" + Encoding.UTF8.GetString(_buff, 0, len));
         }
 
         async void BeginUpdate()
@@ -149,7 +149,7 @@ namespace kcp
                         }
 
                         //走到这里的都是有conv的数据
-                        Console.WriteLine("ReceiveFrom:" + ipep.ToString());
+                        Console.WriteLine("Receive KCP From:" + ipep.ToString());
                         bool getkcp = kcpClientDict.TryGetValue(convClient, out var info);
                         if (getkcp)
                         {
@@ -188,20 +188,22 @@ namespace kcp
             });
         }
 
-        void ProcessUdp(string _ip,int _port, byte[] _buff,int size)
+        void ProcessUdp(string _ip,int _port, byte[] _buff,int buffsize)
         {
-            int offset = 4; //udp数据第一位需要。
+            int index = 4; //udp数据第一位需要。
             //客户端连接，需要发送，{ 0(空数据),KcpFlag.Connect(连接类型),。。。。。}
            
-            KcpFlag flagtype = (KcpFlag)StructConverter.ToInt32BigEndian(_buff,offset);
-            offset += 4;
+            KcpFlag flagtype = (KcpFlag)StructConverter.ToInt32Big2LocalEndian(_buff, index);
+            index += 4;
             //为0，表示是非KCP数据,然后获取第二位，看想做什么
+            object[] parms;
             switch (flagtype)
             {
                 case KcpFlag.ConnectRequest:
                     //如果是连接，需要验证连接密匙
                     //{0(空数据),KcpFlag.ConnectRequest(连接类型),ConnectKey(连接密钥)}
-                    string ckey = Encoding.UTF8.GetString(_buff, 8, size - offset);
+                    parms = StructConverter.Unpack(">" + ConnectKey.Length + "s", _buff, index, buffsize - index );
+                    string ckey = (string)parms[0];// Encoding.UTF8.GetString(_buff, ConnectKey.Length, size - offset);
                     if (ckey.Equals(ConnectKey))
                     {
                         //如果是合法的，那么需要生成一个conv。
@@ -225,7 +227,7 @@ namespace kcp
                         //byte[] convCode = BitConverter.GetBytes(kinfo.linkrandomcode);
                         //convCode.CopyTo(linkbuff, 8);
 
-                        byte[] buff0 = StructConverter.Pack(new object[] { (int)0, (int)KcpFlag.AllowConnectConv, kinfo.linkrandomcode });
+                        byte[] buff0 = StructConverter.Pack(new object[] { (int)0, (int)KcpFlag.AllowConnectConv, newConv, kinfo.linkrandomcode });
                         //udpsocket.Send(buff0, 0, buff0.Length, SocketFlags.None, ipep);
 
 
@@ -238,10 +240,13 @@ namespace kcp
                 case KcpFlag.ConnectKcpRequest:
                     //如果客户端发送请求，需要验证
                     //{0,KcpFlag.ConnectKcpRequest,自己的conv编号，服务端的随机数}
-                    uint get_conv = BitConverter.ToUInt32(_buff, offset);
-                    offset += 4;
-                    int get_code = BitConverter.ToInt32(_buff, offset);
-                    offset += 4;
+                    //uint get_conv = BitConverter.ToUInt32(_buff, index);
+                    //index += 4;
+                    //int get_code = BitConverter.ToInt32(_buff, index);
+                    //index += 4;
+                    parms = StructConverter.Unpack(">Ii" , _buff, index, buffsize - index);
+                    uint get_conv = (uint)parms[0];
+                    int get_code = (int)parms[1];
                     //根据连接conv，识别上次的请求是否和这个请求匹配
                     bool getlinkone = kcpClientLinking.TryGetValue(get_conv, out KcpClientInfo linkinfo);
                     if (getlinkone)
@@ -251,6 +256,8 @@ namespace kcp
                         {
                             //成功握手了。
                             //把连接数据放入正式数据
+                            Console.WriteLine("同意客户端请求连接:" + ipep.ToString());
+
                             linkinfo.ep = ipep;
                             linkinfo.kcp = new KcpServer();
                             linkinfo.kcp.Create(this, linkinfo.conv);
@@ -259,11 +266,10 @@ namespace kcp
                             kcpClientLinking.Remove(get_conv);
 
                             //通知客户端成功,通过kcp发送
-                            byte[] convUnit = BitConverter.GetBytes((int)KcpFlag.AllowConnectOK);
-                            convUnit.CopyTo(linkbuff, 4);
-                            linkinfo.kcp.SendByte(linkbuff, 4);
+                            byte[] buff0 = StructConverter.Pack(new object[] { (int)KcpFlag.AllowConnectOK });
+                            linkinfo.kcp.SendByte(buff0, buff0.Length);
 
-                            Console.WriteLine("同意客户端请求连接:" + ipep.ToString());
+                            
                         }
                     }
 
