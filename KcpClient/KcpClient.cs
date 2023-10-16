@@ -44,7 +44,7 @@ namespace kcp
             //udpsocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             //udpsocket.Blocking = false;
             //udpsocket.Bind(localipep);
-            Console.WriteLine("client linked .");
+            Console.WriteLine("Kcp Client Created .");
 
         }
 

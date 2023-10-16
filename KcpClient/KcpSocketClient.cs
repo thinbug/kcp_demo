@@ -82,15 +82,22 @@ namespace kcp
         public void SocketSendByte(uint _convId, byte[] _buff, int len)
         {
             udpsocket.Send(_buff, 0, len, SocketFlags.None);
-            Console.WriteLine("socket发送:" + _convId);
+            Console.WriteLine("client socket发送:" + len);
         }
 
         public void SocketRecvData(uint _convId, byte[] _buff, int len)
         {
             Console.WriteLine(_convId + "-rec:" + Encoding.UTF8.GetString(_buff, 0, len));
-            object[] parms = StructConverter.Unpack(">Ii", _buff, 8, 8);
-            KcpFlag flagtype = (KcpFlag)StructConverter.ToInt32Big2LocalEndian(_buff, index);
-            switch
+            
+            //首先获取到conv和消息类型
+            object[] parms = StructConverter.Unpack(">i", _buff, 0, 4);
+            KcpFlag flag = (KcpFlag)parms[0];
+            switch (flag)
+            {
+                case KcpFlag.AllowConnectOK:
+                    Console.WriteLine("客户端成功连接服务端.");
+                    break;
+            }
         }
 
 
