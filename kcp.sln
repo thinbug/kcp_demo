@@ -19,7 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "kcpwarpper.net35", "kcpwarp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KcpLibrary", "KcpLibrary\KcpLibrary.csproj", "{570E52F4-D2CA-4525-81DC-D47F1A3CF74F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KcpServer", "kcp_server\KcpServer.csproj", "{7C1E7F6C-4A48-4621-919A-86E10C60B33E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KcpServer", "kcpServer\KcpServer.csproj", "{7C1E7F6C-4A48-4621-919A-86E10C60B33E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KcpClient", "KcpClient\KcpClient.csproj", "{8843220F-3439-406D-8635-94353416E3A7}"
 EndProject
