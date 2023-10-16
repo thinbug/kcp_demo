@@ -71,8 +71,8 @@ namespace kcp
             udpsocket.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
             udpsocket.Connect(remote);
 
-            kcpClient = new KcpClient();
-            kcpClient.Create(this, 1);
+            //kcpClient = new KcpClient();
+            //kcpClient.Create(this, 1);
 
             BeginUpdate();
         }
@@ -85,13 +85,19 @@ namespace kcp
             Console.WriteLine("client socket发送:" + len);
         }
 
-        public void SocketRecvData(uint _convId, byte[] _buff, int len)
+        public void SocketRecvData(byte[] _buff, int len)
         {
-            Console.WriteLine(_convId + "-rec:" + Encoding.UTF8.GetString(_buff, 0, len));
+            Console.WriteLine(_conv + "-rec:" + Encoding.UTF8.GetString(_buff, 0, len));
             
             //首先获取到conv和消息类型
-            object[] parms = StructConverter.Unpack(">i", _buff, 0, 4);
-            KcpFlag flag = (KcpFlag)parms[0];
+            object[] parms = StructConverter.Unpack(">Ii", _buff, 0, len);
+            uint con_id = (uint)parms[0];
+            if (con_id != _conv)
+            {
+                Console.WriteLine("conv错误.");
+                return;
+            }
+            KcpFlag flag = (KcpFlag)parms[1];
             switch (flag)
             {
                 case KcpFlag.AllowConnectOK:
@@ -216,6 +222,7 @@ namespace kcp
 
                     //开始创建自己的kcp，开始接收数据
                     kcpClient = new KcpClient();
+                    _conv = get_conv;
                     kcpClient.Create(this, get_conv);
 
                     stat = -2;

@@ -266,7 +266,7 @@ namespace kcp
                             kcpClientLinking.Remove(get_conv);
 
                             //通知客户端成功,通过kcp发送
-                            byte[] buff0 = StructConverter.Pack(new object[] { (int)KcpFlag.AllowConnectOK });
+                            byte[] buff0 = StructConverter.Pack(new object[] { linkinfo.conv,(int)KcpFlag.AllowConnectOK });
                             linkinfo.kcp.SendByte(buff0, buff0.Length);
 
                             
