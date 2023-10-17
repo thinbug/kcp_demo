@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\KcpLibrary\KcpLibrary.csproj" />
+    <ProjectReference Include="..\KcpLibrary\NetLibrary.csproj" />
   </ItemGroup>
 
 </Project>

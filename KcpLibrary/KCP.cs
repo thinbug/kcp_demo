@@ -1,9 +1,14 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace KcpLibrary
+//脚本修改自//https://github.com/a11s/kcp_warpper
+
+namespace NetLibrary
 {
+    
     public unsafe class KCP
     {
+
+
         const string LIBNAME = "libikcp";
         //---------------------------------------------------------------------
         // interface

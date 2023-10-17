@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 
 
-namespace KcpLibrary
+namespace NetLibrary
 {
     public unsafe struct IQUEUEHEAD
     {

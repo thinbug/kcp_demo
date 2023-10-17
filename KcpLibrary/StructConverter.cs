@@ -8,7 +8,7 @@ using System.Collections;
 // This is a crude implementation of a format string based struct converter for C#.
 // This is probably not the best implementation, the fastest implementation, the most bug-proof implementation, or even the most functional implementation.
 // It's provided as-is for free. Enjoy.
-namespace KcpLibrary
+namespace NetLibrary
 {
     public class StructConverter
     {

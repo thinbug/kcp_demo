@@ -6,14 +6,14 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using static KcpLibrary.KCP;
+using static NetLibrary.KCP;
 
 namespace kcp
 {
     unsafe internal class KcpClient
     {
 
-        public KcpLibrary.IKCPCB* kcp;
+        public NetLibrary.IKCPCB* kcp;
         uint userid = 0;
         //byte[] b = new byte[1400];
         byte[] kb = new byte[1400];
@@ -34,7 +34,7 @@ namespace kcp
 
             kcp = ikcp_create(userid, (void*)userid);
 
-            kcp->output = Marshal.GetFunctionPointerForDelegate(new KcpLibrary.d_output(udp_output));
+            kcp->output = Marshal.GetFunctionPointerForDelegate(new NetLibrary.d_output(udp_output));
 
             ikcp_wndsize(kcp, 128, 128);
             ikcp_nodelay(kcp, 1, 10, 2, 1);
@@ -107,11 +107,12 @@ namespace kcp
             }
         }
 
-        int udp_output(byte* buf, int len, KcpLibrary.IKCPCB* kcp, void* user)
+        int udp_output(byte* buf, int len, NetLibrary.IKCPCB* kcp, void* user)
         {
             byte[] buff = new byte[len];
             Marshal.Copy(new IntPtr(buf), buff, 0, len);
-            socketClient.SocketSendByte(userid, buff, len);
+            socketClient.output(userid, buff, len);
+            //socketServer.SocketSendByte(userid, buff, len);
             //socketServer.SocketSendByte((int)user, buff, len);
             //udpsocket.SendTo(buff, 0, len, SocketFlags.None, remoteipep);
             //Console.WriteLine("udp_output:" + (int)user);
@@ -123,19 +124,10 @@ namespace kcp
             fixed (byte* p = &buff[0])
             {
                 var ret = ikcp_send(kcp, p, len);
-                Console.WriteLine("Kcp SendByte:" + ret);
+                Console.WriteLine("Kcp client SendByte:" + ret + ",size:" + len);
             }
         }
 
-        //public void Send(string txt)
-        //{
-        //    var buff = Encoding.UTF8.GetBytes(txt);
-        //    fixed (byte* p = &buff[0])
-        //    {
-        //        var ret = ikcp_send(kcp, p, buff.Length);
-        //        Console.WriteLine("server send:" + ret);
-        //    }
-        //}
-
+        
     }
 }

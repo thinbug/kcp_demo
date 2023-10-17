@@ -53,6 +53,7 @@ namespace Test
         {
             byte[] buff = new byte[len];
             Marshal.Copy(new IntPtr(buf), buff, 0, len);
+            Console.WriteLine("udp_output"  + ",buffsize: " + len);
             udpsocket.SendTo(buff, 0, len, SocketFlags.None, remoteipep);
             return 0;
         }
