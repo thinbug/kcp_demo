@@ -11,6 +11,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\KcpLibrary\NetLibrary.csproj" />
+
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy $(SolutionDir)kcplib_linux\bin\x86\Debug\*.* $(TargetDir)\ /S /D /Y" />
+  </Target>
 
 </Project>
