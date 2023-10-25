@@ -321,5 +321,26 @@ namespace NetLibrary
             }
             return BitConverter.ToInt32(bigEndiaData, offset);
         }
+
+        //转成大端
+        public static uint ToUInt32BigEndian(byte[] data, int offset)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(data, offset, 4);
+                return BitConverter.ToUInt32(data, offset);
+            }
+            return BitConverter.ToUInt32(data, offset);
+        }
+        //大端转成本机可用
+        public static uint ToUInt32Big2LocalEndian(byte[] bigEndiaData, int offset)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(bigEndiaData, offset, 4);
+                return BitConverter.ToUInt32(bigEndiaData, offset);
+            }
+            return BitConverter.ToUInt32(bigEndiaData, offset);
+        }
     }
 }

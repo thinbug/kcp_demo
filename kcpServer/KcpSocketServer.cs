@@ -114,7 +114,7 @@ namespace kcp
                     {
                         //首先获取到conv
                         int offset = 0;
-                        uint convClient = BitConverter.ToUInt32(buff, 0);
+                        uint convClient = StructConverter.ToUInt32Big2LocalEndian(buff, 0);
                         offset += 4;
                         if (convClient == 0)
                         {
@@ -195,19 +195,8 @@ namespace kcp
                         kcpClientLinking.Add(newConv, kinfo);
 
                         //然后通知客户端conv编号再次链接
-                        //SocketFlagSend(KcpFlag.AllowConnectConv, ipep);
-                        //{ 0(空),KcpFlag.AllowConnectConv(连接类型),一个随机数}
-                        //byte[] zeroUnit = BitConverter.GetBytes((int)0);
-                        //zeroUnit.CopyTo(linkbuff, 0);
-                        //byte[] convUnit = BitConverter.GetBytes((int)KcpFlag.AllowConnectConv);
-                        //convUnit.CopyTo(linkbuff, 4);
-                        //byte[] convCode = BitConverter.GetBytes(kinfo.linkrandomcode);
-                        //convCode.CopyTo(linkbuff, 8);
-
+                        
                         byte[] buff0 = StructConverter.Pack(new object[] { (int)0, (int)KcpFlag.AllowConnectConv, newConv, kinfo.linkrandomcode });
-                        //udpsocket.Send(buff0, 0, buff0.Length, SocketFlags.None, ipep);
-
-
                         udpsocket.SendTo(buff0, 0, buff0.Length, SocketFlags.None, ipep);
 
                         Console.WriteLine("接收到客户端第一次请求连接:" + ipep.ToString());
