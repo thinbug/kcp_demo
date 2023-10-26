@@ -102,7 +102,7 @@ namespace kcp
                 var kcnt = ikcp_recv(kcp, p, kb.Length);
                 if (kcnt > 0)
                 {
-                    socketClient.SocketRecvData(kb, kcnt);
+                    socketClient.KcpRecvData(kb, kcnt);
                 }
             }
         }

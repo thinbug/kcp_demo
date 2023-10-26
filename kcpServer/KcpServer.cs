@@ -48,7 +48,7 @@ namespace kcp
             //udpsocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             //udpsocket.Blocking = false;
             //udpsocket.Bind(localipep);
-            Console.WriteLine("Bind server");
+            Console.WriteLine("create a kcp ");
 
         }
 
@@ -106,7 +106,7 @@ namespace kcp
                 var kcnt = ikcp_recv(kcp, p, kb.Length);
                 if (kcnt > 0)
                 {
-                    socketServer.SocketRecvData(userid, kb, kcnt);
+                    socketServer.KcpRecvData(userid, kb, kcnt);
                 }
             }
         }

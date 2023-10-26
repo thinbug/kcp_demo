@@ -160,7 +160,7 @@ namespace kcp
                 case 0://发送第一次握手数据
                     //然后通知客户端conv编号再次链接
                     connectStat = -1;
-                    byte[] buff0 = StructConverter.Pack(new object[] { (int)0, (int)KcpFlag.ConnectRequest, ConnectKey },false,out string head);
+                    byte[] buff0 = StructConverter.Pack(new object[] { (int)0, (int)KcpFlag.ConnectRequest, ConnectKey },true,out string head);
                     udpsocket.Send(buff0, 0, buff0.Length, SocketFlags.None);
                     Console.WriteLine("发送第一次握手数据:" + Encoding.UTF8.GetString(buff0) + ",len:" + buff0.Length+","+ head);
 
@@ -180,7 +180,7 @@ namespace kcp
             {
                 lasthearttime = DateTimeOffset.Now.ToUnixTimeSeconds() + heartTime;
                 Console.WriteLine("lasthearttime:" + lasthearttime);
-                Send(new object[] { _conv, (int)KcpFlag.HeartBeat });
+                Send(new object[] { _conv,linkcode, (int)KcpFlag.HeartBeat });
             }
             
         }
@@ -189,7 +189,7 @@ namespace kcp
         {
             int index = 4; //udp数据第一位需要。
             //KcpFlag flagtype = (KcpFlag)BitConverter.ToInt32(_buff, offset);
-            KcpFlag flagtype = (KcpFlag)StructConverter.ToInt32Big2LocalEndian(_buff, index);
+            KcpFlag flagtype = (KcpFlag)StructConverter.ToInt32_Little2Local_Endian(_buff, index);
             index += 4;
             //为0，表示是非KCP数据,然后获取第二位，看想做什么
             switch (flagtype)
@@ -200,15 +200,15 @@ namespace kcp
                         break;
                     //接收到服务端发来的编号。
                     //{ 0(空),KcpFlag.AllowConnectConv(连接类型),一个随机数}
-                    object[] parms = StructConverter.Unpack(">Ii", _buff, index, buffsize - index);
+                    object[] parms = StructConverter.Unpack(StructConverter.EndianHead +"Ii", _buff, index, buffsize - index);
                     uint get_conv = (uint)parms[0];
                     //index += 4;
                     linkcode = (int)parms[1];
                     //offset += 4;
-
+                    Console.WriteLine("linkcode:" + linkcode);
                     //再次给服务端发送，需要服务端验证自己。
 
-                    byte[] buff0 = StructConverter.Pack(new object[] { (int)0, (int)KcpFlag.ConnectKcpRequest, get_conv, linkcode },false,out string head);
+                    byte[] buff0 = StructConverter.Pack(new object[] { (int)0, (int)KcpFlag.ConnectKcpRequest, get_conv, linkcode }, true, out string head);
                     udpsocket.Send(buff0, 0, buff0.Length, SocketFlags.None);
                     Console.WriteLine("发送第2次握手数据:" + Encoding.UTF8.GetString(buff0) + ",len:" + buff0.Length+","+ head);
 
@@ -238,19 +238,25 @@ namespace kcp
         }
 
         //真正的接收数据
-        public void SocketRecvData(byte[] _buff, int len)
+        public void KcpRecvData(byte[] _buff, int len)
         {
-            Console.WriteLine(_conv + "-rec:" + Encoding.UTF8.GetString(_buff, 0, len));
+            //Console.WriteLine(_conv + "-rec:" + Encoding.UTF8.GetString(_buff, 0, len));
 
             //首先获取到conv和消息类型
-            object[] parms = StructConverter.Unpack(">Ii", _buff, 0, 8);
+            object[] parms = StructConverter.Unpack(StructConverter.EndianHead + "Iii", _buff, 0, 12);
             uint con_id = (uint)parms[0];
+            int con_randomkey = (int)parms[1];
             if (con_id != _conv)
             {
                 Console.WriteLine("conv错误.");
                 return;
             }
-            KcpFlag flag = (KcpFlag)parms[1];
+            if (con_randomkey != linkcode)
+            {
+                Console.WriteLine("linkcode错误.");
+                return;
+            }
+            KcpFlag flag = (KcpFlag)parms[2];
             switch (flag)
             {
                 case KcpFlag.AllowConnectOK:

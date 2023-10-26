@@ -14,6 +14,7 @@ namespace NetLibrary
     {
         //用来解析字符串前的数字的
         static string pattern = "\\d+";
+        public static string EndianHead = "<";  //大端还是小端，KCP是小端，所以用小端
         static Regex reg = new Regex(pattern);
 
         // We use this function to provide an easier way to type-agnostically call the GetBytes method of the BitConverter class.
@@ -288,7 +289,7 @@ namespace NetLibrary
         public static byte[] Pack(object[] items)
         {
             string dummy = "";
-            return Pack(items, false, out dummy);
+            return Pack(items, true, out dummy);
         }
 
         public static byte[] ByteOutBigEndian(byte[] data)
@@ -301,27 +302,38 @@ namespace NetLibrary
             return data ;
         }
 
-        //转成大端
-        public static int ToInt32BigEndian(byte[] data,int offset)
-        {
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(data,offset, 4);
-                return BitConverter.ToInt32(data, offset);
-            }
-            return BitConverter.ToInt32(data, offset);
-        }
+        
         //大端转成本机可用
-        public static int ToInt32Big2LocalEndian(byte[] bigEndiaData, int offset)
+        public static int ToInt32_Little2Local_Endian(byte[] bigEndiaData, int offset)
         {
-            if (BitConverter.IsLittleEndian)
+            if (!BitConverter.IsLittleEndian)
             {
                 Array.Reverse(bigEndiaData, offset, 4);
                 return BitConverter.ToInt32(bigEndiaData, offset);
             }
             return BitConverter.ToInt32(bigEndiaData, offset);
         }
+        //大端转成本机可用
+        public static uint ToUInt32_B2L_Endian(byte[] bigEndiaData, int offset)
+        {
+            if (!BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(bigEndiaData, offset, 4);
+                return BitConverter.ToUInt32(bigEndiaData, offset);
+            }
+            return BitConverter.ToUInt32(bigEndiaData, offset);
+        }
 
+        //转成大端
+        public static int ToInt32BigEndian(byte[] data, int offset)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(data, offset, 4);
+                return BitConverter.ToInt32(data, offset);
+            }
+            return BitConverter.ToInt32(data, offset);
+        }
         //转成大端
         public static uint ToUInt32BigEndian(byte[] data, int offset)
         {
@@ -332,15 +344,6 @@ namespace NetLibrary
             }
             return BitConverter.ToUInt32(data, offset);
         }
-        //大端转成本机可用
-        public static uint ToUInt32Big2LocalEndian(byte[] bigEndiaData, int offset)
-        {
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(bigEndiaData, offset, 4);
-                return BitConverter.ToUInt32(bigEndiaData, offset);
-            }
-            return BitConverter.ToUInt32(bigEndiaData, offset);
-        }
+        
     }
 }
