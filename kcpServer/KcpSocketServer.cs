@@ -126,19 +126,13 @@ namespace kcp
                             continue;
                         }
 
-                        int _linkcode = StructConverter.ToInt32_Little2Local_Endian(buff, offset);
-
+                        
                         //走到这里的都是有conv的数据
                         //Console.WriteLine("Receive KCP From:" + ipep.ToString() + ",buffsize:"+ cnt);
                         bool getkcp = kcpClientDict.TryGetValue(convClient, out var info);
                         if (getkcp)
                         {
-                            if (info.linkrandomcode != _linkcode)
-                            {
-                                Console.WriteLine("linkcode 不匹配");
-                            }
-                            else
-                            {
+                            
                                 //验证IP和端口
                                 if (info.port == port && ip.Equals(info.ip))
                                 {
@@ -149,11 +143,11 @@ namespace kcp
                                     Console.WriteLine("IP Port 不匹配");
                                     //SocketFlagSend(KcpFlag.ErrorIPPortWrong, ipep);
                                 }
-                            }
+                            
                         }
                         else
                         {
-                            Console.WriteLine("错误的conv编号。");
+                            Console.WriteLine("未知的conv编号："+ convClient);
                             //SocketFlagSend(KcpFlag.ErrorConv, ipep);
                         }
                     }
@@ -265,9 +259,9 @@ namespace kcp
 
         public void KcpRecvData(uint _convId, byte[] _buff, int len)
         {
-            Console.WriteLine(_convId + "-server rec:" + Encoding.UTF8.GetString(_buff, 0, len));
+            //Console.WriteLine(_convId + "-server rec:" + Encoding.UTF8.GetString(_buff, 0, len));
             //首先获取到conv和消息类型
-            object[] parms = StructConverter.Unpack(StructConverter.EndianHead +"Ii", _buff, 0, 12);
+            object[] parms = StructConverter.Unpack(StructConverter.EndianHead +"Iii", _buff, 0, 12);
             uint con_id = (uint)parms[0];
             int con_linkcode = (int)parms[1];
             bool getlinkone = kcpClientDict.TryGetValue(con_id, out KcpClientInfo linkinfo);
@@ -294,7 +288,7 @@ namespace kcp
         void HeartBeatProc(KcpClientInfo info )
         {
             info.hearttime = DateTimeOffset.Now.ToUnixTimeSeconds();
-            Console.WriteLine("心跳接收.");
+            Console.WriteLine("心跳接收(" + info.conv + ") :" + info.ip + "," + info.port);
         }
     }
 }

@@ -25,7 +25,7 @@ namespace kcp
 
         //Socket udpsocket;
         private KcpSocketServer socketServer;
-
+        NetLibrary.d_output d_output;
 
         public void Create(KcpSocketServer _socketServer,uint _conv)
         {
@@ -37,8 +37,8 @@ namespace kcp
             userid = _conv;
 
             kcp = ikcp_create(userid, (void*)userid);
-
-            kcp->output = Marshal.GetFunctionPointerForDelegate(new NetLibrary.d_output(udp_output));
+            d_output = new NetLibrary.d_output(udp_output);
+            kcp->output = Marshal.GetFunctionPointerForDelegate(d_output);
 
             ikcp_wndsize(kcp, 128, 128);
             ikcp_nodelay(kcp, 1, 10, 2, 1);
