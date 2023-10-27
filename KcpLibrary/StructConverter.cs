@@ -62,7 +62,7 @@ namespace NetLibrary
         /// <exception cref="ArgumentException"></exception>
         public static object[] Unpack(string fmt, byte[] bytes, int index ,int length )
         {
-            Debug.WriteLine("Format string is length {0}, {1} bytes provided.", fmt.Length, bytes.Length);
+            //Debug.WriteLine("Format string is length {0}, {1} bytes provided.", fmt.Length, bytes.Length);
 
             // First we parse the format string to make sure it's proper.
             if (fmt.Length < 1) return null;
@@ -70,7 +70,7 @@ namespace NetLibrary
             bool endianFlip = false;
             if (fmt.Substring(0, 1) == "<")
             {
-                Debug.WriteLine("  Endian marker found: little endian");
+                //Debug.WriteLine("  Endian marker found: little endian");
                 // Little endian.
                 // Do we need to flip endianness?
                 if (BitConverter.IsLittleEndian == false) endianFlip = true;
@@ -78,7 +78,7 @@ namespace NetLibrary
             }
             else if (fmt.Substring(0, 1) == ">")
             {
-                Debug.WriteLine("  Endian marker found: big endian");
+                //Debug.WriteLine("  Endian marker found: big endian");
                 // Big endian.
                 // Do we need to flip endianness?
                 if (BitConverter.IsLittleEndian == true) endianFlip = true;
@@ -153,8 +153,8 @@ namespace NetLibrary
 
             }
 
-            Debug.WriteLine("Endianness will {0}be flipped.", (object)(endianFlip == true ? "" : "NOT "));
-            Debug.WriteLine("The byte array is expected to be {0} bytes long.", totalByteLength);
+            //Debug.WriteLine("Endianness will {0}be flipped.", (object)(endianFlip == true ? "" : "NOT "));
+            //Debug.WriteLine("The byte array is expected to be {0} bytes long.", totalByteLength);
 
             // Test the byte array length to see if it contains as many bytes as is needed for the string.
             //这有一个问题,如果打包了s字符串,可能出现不足4的字符串,如果后面又i型数值,那么他会补充4的倍数,导致这里长度不一样,
@@ -167,7 +167,7 @@ namespace NetLibrary
             List<object> outputList = new List<object>();
             byte[] buf;
             stringNo = 0;
-            Debug.WriteLine("Processing byte array...");
+            //Debug.WriteLine("Processing byte array...");
             
             for (i = 0; i < cssize; i++)//foreach (char c in cs)
             {
@@ -178,60 +178,60 @@ namespace NetLibrary
                     case 'l':
                         outputList.Add((object)(bool)BitConverter.ToBoolean(bytes, byteArrayPosition));
                         byteArrayPosition += 1;
-                        Debug.WriteLine("  Added signed 32-bit bool.");
+                        //Debug.WriteLine("  Added signed 32-bit bool.");
                         break;
                     case 'q':
                         outputList.Add((object)(long)BitConverter.ToInt64(bytes, byteArrayPosition));
                         byteArrayPosition += 8;
-                        Debug.WriteLine("  Added signed 64-bit integer.");
+                        //Debug.WriteLine("  Added signed 64-bit integer.");
                         break;
                     case 'Q':
                         outputList.Add((object)(ulong)BitConverter.ToUInt64(bytes, byteArrayPosition));
                         byteArrayPosition += 8;
-                        Debug.WriteLine("  Added unsigned 64-bit integer.");
+                        //Debug.WriteLine("  Added unsigned 64-bit integer.");
                         break;
                     case 'i':
                         outputList.Add((object)(int)BitConverter.ToInt32(bytes, byteArrayPosition));
                         byteArrayPosition += 4;
-                        Debug.WriteLine("  Added signed 32-bit integer.");
+                        //Debug.WriteLine("  Added signed 32-bit integer.");
                         break;
                     case 'I':
                         outputList.Add((object)(uint)BitConverter.ToUInt32(bytes, byteArrayPosition));
                         byteArrayPosition += 4;
-                        Debug.WriteLine("  Added unsignedsigned 32-bit integer.");
+                        //Debug.WriteLine("  Added unsignedsigned 32-bit integer.");
                         break;
                     case 'f':
                         outputList.Add((object)(float)BitConverter.ToSingle(bytes, byteArrayPosition));
                         byteArrayPosition += 4;
-                        Debug.WriteLine("  Added signed float.");
+                        //Debug.WriteLine("  Added signed float.");
                         break;
                     case 'h':
                         outputList.Add((object)(short)BitConverter.ToInt16(bytes, byteArrayPosition));
                         byteArrayPosition += 2;
-                        Debug.WriteLine("  Added signed 16-bit integer.");
+                        //Debug.WriteLine("  Added signed 16-bit integer.");
                         break;
                     case 'H':
                         outputList.Add((object)(ushort)BitConverter.ToUInt16(bytes, byteArrayPosition));
                         byteArrayPosition += 2;
-                        Debug.WriteLine("  Added unsigned 16-bit integer.");
+                        //Debug.WriteLine("  Added unsigned 16-bit integer.");
                         break;
                     case 'b':
                         buf = new byte[1];
                         Array.Copy(bytes, byteArrayPosition, buf, 0, 1);
                         outputList.Add((object)(sbyte)buf[0]);
                         byteArrayPosition++;
-                        Debug.WriteLine("  Added signed byte");
+                        //Debug.WriteLine("  Added signed byte");
                         break;
                     case 'B':
                         buf = new byte[1];
                         Array.Copy(bytes, byteArrayPosition, buf, 0, 1);
                         outputList.Add((object)(byte)buf[0]);
                         byteArrayPosition++;
-                        Debug.WriteLine("  Added unsigned byte");
+                        //Debug.WriteLine("  Added unsigned byte");
                         break;
                     case 'x':
                         byteArrayPosition++;
-                        Debug.WriteLine("  Ignoring a byte");
+                        //Debug.WriteLine("  Ignoring a byte");
                         break;
                     case 's':
                         int len = int.Parse(mc[stringNo].ToString());

@@ -56,38 +56,9 @@ namespace kcp
 
         public void Update()
         {
-            //if (udpsocket == null || kcp == null)
-            //{
-            //    return;
-            //}
+            
             ikcp_update(kcp, (uint)Environment.TickCount);
-            //if (udpsocket.Available == 0)
-            //{
-            //    return;
-            //}
-           
-
-            //int cnt = udpsocket.ReceiveFrom(b, ref ipep);
-            //if (cnt > 0)
-            //{
-            //    Console.WriteLine("ReceiveFrom:" + ipep.ToString());
-            //    fixed (byte* p = &b[0])
-            //    {
-            //        ikcp_input(kcp, p, cnt);
-            //    }
-            //}
-            //else
-            //{
-            //    Console.WriteLine("cnt:" + cnt);
-            //}
-            //fixed (byte* p = &kb[0])
-            //{
-            //    var kcnt = ikcp_recv(kcp, p, kb.Length);
-            //    if (kcnt > 0)
-            //    {
-            //        Console.WriteLine("rec:" + Encoding.UTF8.GetString(kb, 0, kcnt));
-            //    }
-            //}
+            
         }
 
         public void kcp_input(byte[] data, long size)
