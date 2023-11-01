@@ -195,7 +195,7 @@ namespace kcp
             if (now > lasthearttime)
             {
                 lasthearttime = DateTimeOffset.Now.ToUnixTimeSeconds() + heartTime;
-                Console.WriteLine("lasthearttime:" + lasthearttime);
+                Console.WriteLine("lasthearttime:" + lasthearttime+","+DateTime.Now.ToString());
                 Send(new object[] { _conv,linkcode, (int)KcpFlag.HeartBeat });
             }
             
