@@ -45,13 +45,16 @@ namespace kcp
 
         long relinkTime;   //上次重连时间
         int connectStat = 0;   //0:创建，-1：请求分配conv,-2：连接服务端，并创建kcp。，1：连接完成 , -100:发生其他问题
+        
+        long nexthearttime;
         long lasthearttime;
+        long lasthearttimeBack;
         public void Create(string _ip,int _port)
         {
             remoteIp = _ip;
             remotePort = _port;
             connectStat = 0;
-            
+            lasthearttimeBack = 0;
 
             var remote = new IPEndPoint(IPAddress.Parse(remoteIp), remotePort);
             udpsocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -113,13 +116,7 @@ namespace kcp
                     if (errorCode != SocketError.Success)
                     {
                         Console.WriteLine("SocketError:" + errorCode.ToString());
-                        connectStat = 0;
-                        relinkTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                        if (kcpClient != null)
-                        {
-                            kcpClient.Destory();
-                            kcpClient = null;
-                        }
+                        Clear();
                     }
                     //每个kcp数据需要验证
                     if (cnt > 0)
@@ -154,6 +151,16 @@ namespace kcp
             });
         }
 
+        void Clear()
+        {
+            connectStat = 0;
+            relinkTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            if (kcpClient != null)
+            {
+                kcpClient.Destory();
+                kcpClient = null;
+            }
+        }
         
         //处理连接
         void CheckSocketLinkStat()
@@ -191,14 +198,38 @@ namespace kcp
         //心跳检测
         void CheckHeartBeat()
         {
+            
             long now = DateTimeOffset.Now.ToUnixTimeSeconds();
-            if (now > lasthearttime)
+            
+            if (now > nexthearttime)
             {
-                lasthearttime = DateTimeOffset.Now.ToUnixTimeSeconds() + heartTime;
-                Console.WriteLine("lasthearttime:" + lasthearttime+","+DateTime.Now.ToString());
-                Send(new object[] { _conv,linkcode, (int)KcpFlag.HeartBeat });
+                if (lasthearttimeBack > 0 && lasthearttime - lasthearttimeBack > heartTime)
+                {
+                    //如果收到的心跳周期超过1个周期，那么可能掉线了。
+                    Console.WriteLine("好久没接收到心跳回复，关闭连接:" + (lasthearttime - lasthearttimeBack));
+                    Clear();
+                    return;
+                }
+                lasthearttime = now;
+                nexthearttime = now + heartTime;
+                
+                Console.WriteLine("发送心跳:" + lasthearttime + ","+DateTime.Now.ToString());
+                Send(new object[] { _conv,linkcode, (int)KcpFlag.HeartBeatRequest });
             }
             
+        }
+        void GetHeartBack()
+        {
+            lasthearttimeBack = DateTimeOffset.Now.ToUnixTimeSeconds();
+            Console.WriteLine("接收到服务端心跳回复...");
+        }
+
+        void ConnetOK()
+        {
+            lasthearttimeBack = 0;
+            connectStat = 1;
+            nexthearttime = DateTimeOffset.Now.ToUnixTimeSeconds() + heartTime;
+            Console.WriteLine("成功连接服务端("+_conv+")...");
         }
 
         void ProcessUdp(byte[] _buff,int buffsize)
@@ -276,10 +307,12 @@ namespace kcp
             switch (flag)
             {
                 case KcpFlag.AllowConnectOK:
-                    connectStat = 1;
-                    lasthearttime = DateTimeOffset.Now.ToUnixTimeSeconds() + heartTime;
-                    Console.WriteLine("成功连接服务端...");
-
+                    ConnetOK();
+                    
+                    break;
+                case KcpFlag.HeartBeatBack:
+                    GetHeartBack();
+                    
                     break;
             }
         }

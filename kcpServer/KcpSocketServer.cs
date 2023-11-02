@@ -277,6 +277,11 @@ namespace kcp
 
         }
 
+        void Send(KcpClientInfo info,object[] parm)
+        {
+            byte[] buff0 = StructConverter.Pack(parm);
+            Send(info,buff0, buff0.Length);
+        }
         void Send(KcpClientInfo client, byte[] buff, int buffsize)
         {
             client.kcp.SendByte(buff, buffsize);
@@ -307,7 +312,7 @@ namespace kcp
             KcpFlag flag = (KcpFlag)parms[2];
             switch (flag)
             {
-                case KcpFlag.HeartBeat:
+                case KcpFlag.HeartBeatRequest:
                     HeartBeatProc(linkinfo);
                     break;
             }
@@ -317,6 +322,7 @@ namespace kcp
         {
             info.hearttime = DateTimeOffset.Now.ToUnixTimeSeconds();
             Console.WriteLine("心跳接收(" + info.conv + ") :" + info.ep.ToString());
+            Send(info, new object[] { info.conv, info.linkrandomcode, (int)KcpFlag.HeartBeatBack });
         }
     }
 }
