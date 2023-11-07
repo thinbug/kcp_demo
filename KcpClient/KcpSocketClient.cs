@@ -287,7 +287,7 @@ namespace kcp
         //真正的接收数据
         public void KcpRecvData(byte[] _buff, int len)
         {
-            Console.WriteLine(_conv + "-rec:" + Encoding.UTF8.GetString(_buff, 0, len));
+            //Console.WriteLine(_conv + "-rec:" + Encoding.UTF8.GetString(_buff, 0, len));
 
             //首先获取到conv和消息类型
             object[] parms = StructConverter.Unpack(StructConverter.EndianHead + "Iii", _buff, 0, 12);
