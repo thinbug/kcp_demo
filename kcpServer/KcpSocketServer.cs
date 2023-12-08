@@ -19,7 +19,7 @@ using System.Threading.Tasks;
  * 服务端再次收到后，验证没问题就发送kcp连接成功。前面的都是通过udp直接发送，这里服务器第一次kcp发送{KcpFlag.AllowConnectOK}
 */
 ///
-namespace kcp
+namespace KcpServer
 {
     internal class KcpSocketServer
     {

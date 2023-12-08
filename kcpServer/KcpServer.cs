@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static NetLibrary.KCP;
 
-namespace kcp
+namespace KcpServer
 {
     unsafe internal class KcpServer
     {
