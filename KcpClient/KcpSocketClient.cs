@@ -95,7 +95,7 @@ namespace kcp
             {
                 while (true)
                 {
-                    await Task.Delay(10);
+                    await Task.FromResult(0);
 
                     CheckSocketLinkStat();
 
