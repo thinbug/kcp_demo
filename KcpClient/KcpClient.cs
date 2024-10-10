@@ -71,11 +71,13 @@ namespace kcp
         }
         public void kcp_recv()
         {
-            fixed (byte* p = &kb[0])
+            //这里需要连续接收,直到没有
+            while (true)
             {
-                var kcnt = ikcp_recv(kcp, p, kb.Length);
-                if (kcnt > 0)
+                fixed (byte* p = &kb[0])
                 {
+                    var kcnt = ikcp_recv(kcp, p, kb.Length);
+                    if (kcnt < 0) break;
                     socketClient.KcpRecvData(kb, kcnt);
                 }
             }

@@ -71,6 +71,7 @@ namespace KcpServer
             udpsocket.Blocking = false;
             udpsocket.Bind(localipep);
 
+            CheckTimeOut();
             BeginUpdate();
 
 
@@ -90,112 +91,141 @@ namespace KcpServer
             //Console.WriteLine("socket发送:" + _convId);
         }
 
+        async void CheckTimeOut()
+        {
+            while (true)
+            {
+                await Task.Delay(1000);
 
+                long nowhearttime = DateTimeOffset.Now.ToUnixTimeSeconds();
+
+                //链接超时
+                var listlink = kcpClientLinking.GetEnumerator();
+                while (listlink.MoveNext())
+                {
+                    var item = listlink.Current;
+                    if (nowhearttime - item.Value.createtime > TimeOutLink)
+                    {
+                        Console.WriteLine("Link超时了需要删除:" + item.Value.conv);
+                        kcpClientLinking.Remove(item.Key);
+                        break;
+                    }
+                }
+                listlink.Dispose();
+
+                //检测心跳超时
+                var list = kcpClientDict.GetEnumerator();
+                while (list.MoveNext())
+                {
+                    var item = list.Current;
+                    if (nowhearttime - item.Value.hearttime > TimeOutHeart)
+                    {
+                        Console.WriteLine("心跳超时了需要删除 , conv :" + item.Value.conv + "," + item.Value.ep.ToString());
+
+                        kcpClientDict.Remove(item.Key);
+                        
+                        break;
+                    }
+                }
+                list.Dispose();
+
+            }
+        }
         async void BeginUpdate()
         {
+            bool loop = true;
             await Task.Run(async () =>
             {
-                while (true)
+                while (loop)
                 {
-                    await Task.FromResult(0);
-                    
-                    long nowhearttime = DateTimeOffset.Now.ToUnixTimeSeconds();
-
-                    //链接超时
-                    var listlink = kcpClientLinking.GetEnumerator();
-                    while (listlink.MoveNext())
-                    {
-                        var item = listlink.Current;
-                        if (nowhearttime - item.Value.createtime > TimeOutLink)
-                        {
-                            Console.WriteLine("Link超时了需要删除:" + item.Value.conv);
-                            kcpClientLinking.Remove(item.Key);
-                        }
-                    }
-                    listlink.Dispose();
-
+                    //kcp接收update
                     var list = kcpClientDict.GetEnumerator();
                     while (list.MoveNext())
                     {
                         var item = list.Current;
                         item.Value.kcp.Update();
-
-                        if (nowhearttime - item.Value.hearttime > TimeOutHeart)
-                        {
-                            Console.WriteLine("超时了需要删除:"+item.Value.conv);
-                            kcpClientDict.Remove(item.Key);
-                        }
                     }
                     list.Dispose();
 
-                    if (udpsocket.Available == 0)
+                    //await Task.FromResult(0);
+                    await Task.Delay(10);
+                    //Thread.Sleep(1);
+
+                    while (true)
                     {
-                        continue;
-                    }
-
-
-                    int cnt = udpsocket.ReceiveFrom(buff, ref ipep);
-                    //每个kcp数据需要验证
-                    //string ip = ((IPEndPoint)ipep).Address.ToString();
-                    //int port = ((IPEndPoint)ipep).Port;
-                    if (cnt > 0)
-                    {
-                        //Console.WriteLine("cnt:" + cnt);
-
-                        //首先获取到conv
-                        int offset = 0;
-                        uint convClient = StructConverter.ToUInt32_B2L_Endian(buff, offset);
-                        offset += 4;
-                        if (convClient == 0)
+                        if (udpsocket == null)
                         {
-                            ProcessUdp(ipep, buff, cnt);
-                            //所有的非kcp数据接收后都不用继续走了
-                            continue;
+                            Console.WriteLine("socket断开");
+                            loop = false;
+                            break;
                         }
-
-
-                        //走到这里的都是有conv的数据
-                        //Console.WriteLine("Receive KCP From:" + ipep.ToString() + ",buffsize:"+ cnt);
-                        bool getkcp = kcpClientDict.TryGetValue(convClient, out var info);
-                        if (getkcp)
+                        if (udpsocket.Available == 0)
                         {
-
-
-                            //验证IP和端口
-                            if (ipep.Equals(info.ep))
+                            break;
+                        }
+                        int cnt = 0;
+                        try
+                        {
+                            cnt = udpsocket.ReceiveFrom(buff, ref ipep);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("接收失败:" + ex.ToString());
+                            //Console.WriteLine(ex.ToString());
+                            break;
+                        }
+                        //每个kcp数据需要验证
+                        //string ip = ((IPEndPoint)ipep).Address.ToString();
+                        //int port = ((IPEndPoint)ipep).Port;
+                        if (cnt > 0)
+                        {
+                            //首先获取到conv
+                            int offset = 0;
+                            uint convClient = StructConverter.ToUInt32_B2L_Endian(buff, offset);
+                            offset += 4;
+                            if (convClient == 0)
                             {
-                                //进入input会发送ack数据
-                                info.kcp.kcp_input(buff, cnt);
+                                ProcessUdp(ipep, buff, cnt);
+                                //所有的非kcp数据接收后都不用继续走了
+                                continue;
+                            }
+
+                            //走到这里的都是有conv的数据
+                            //Console.WriteLine("Receive KCP From:" + ipep.ToString() + ",buffsize:"+ cnt);
+                            bool getkcp = kcpClientDict.TryGetValue(convClient, out var info);
+                            if (getkcp)
+                            {
+                                //验证IP和端口
+                                if (ipep.Equals(info.ep))
+                                {
+                                    //进入input会发送ack数据
+                                    info.kcp.kcp_input(buff, cnt);
+                                }
+                                else
+                                {
+                                    Console.WriteLine("IP Port 不匹配" + info.ep.ToString() + "," + ipep.ToString());
+                                }
                             }
                             else
                             {
-                                Console.WriteLine("IP Port 不匹配");
-                                //SocketFlagSend(KcpFlag.ErrorIPPortWrong, ipep);
+                                Console.WriteLine("未知的conv:" + convClient.ToString() + "," + ipep.ToString());
                             }
-
                         }
                         else
                         {
-                            Console.WriteLine("未知的conv编号：" + convClient);
-                            //SocketFlagSend(KcpFlag.ErrorConv, ipep);
+                            //这里没有数据
+                            Console.WriteLine("没有数据:" + cnt.ToString() + "," + ipep.ToString());
                         }
-                    }
-                    else
-                    {
-                        //这里没有数据
-                        Console.WriteLine("cnt:" + cnt);
-                    }
+                    } //这个while是接收数据的,如果没有就跳出了
 
                     //接收数据
-                    list = kcpClientDict.GetEnumerator();
-                    while (list.MoveNext())
+                    var listc = kcpClientDict.GetEnumerator();
+                    while (listc.MoveNext())
                     {
-                        var item = list.Current;
+                        var item = listc.Current;
                         item.Value.kcp.kcp_recv();
                     }
-                    list.Dispose();
-
-
+                    listc.Dispose();
                 }
             });
         }
