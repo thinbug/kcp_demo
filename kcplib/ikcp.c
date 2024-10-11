@@ -17,7 +17,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-
+#define IKCP_FASTACK_CONSERVE
 
 //=====================================================================
 // KCP BASIC
@@ -1313,4 +1313,5 @@ IUINT32 ikcp_getconv(const void* ptr)
 	ikcp_decode32u((const char*)ptr, &conv);
 	return conv;
 }
+
 

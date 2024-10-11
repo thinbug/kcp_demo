@@ -59,6 +59,7 @@ namespace NetLibrary
         public void* user;
         public char* buffer;
         public int fastresend;
+        public int fastlimit;
         public int nocwnd, stream;
         public int logmask;
         //int (* output) (const char* buf, int len, struct IKCPCB *kcp, void* user);
